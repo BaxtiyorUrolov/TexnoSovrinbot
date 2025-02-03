@@ -69,34 +69,47 @@ func handleStartCommand(msg *tgbotapi.Message, db *sql.DB, botInstance *tgbotapi
 	userID := msg.From.ID
 	firstName := msg.From.FirstName
 
-	log.Printf("Adding user to database: %d ", userID)
+	log.Printf("Checking if user %d is already in database...", userID)
 	err := storage.AddUserToDatabase(db, userID)
 	if err != nil {
 		log.Printf("Error adding user to database: %v", err)
 		return
 	}
 
+	// Barcha kerakli kanallarni olish
 	channels, err := storage.GetChannelsFromDatabase(db)
 	if err != nil {
 		log.Printf("Error getting channels from database: %v", err)
 		return
 	}
 
-	if isUserSubscribedToChannels(chatID, channels, botInstance) {
-		welcomeMessage := fmt.Sprintf("👋 Assalomu alaykum [%s](tg://user?id=%d), botimizga xush kelibsiz.", firstName, userID)
-
-		msg := tgbotapi.NewMessage(chatID, welcomeMessage)
-		msg.ParseMode = "Markdown"
-		_, err := botInstance.Send(msg)
-		if err != nil {
-			log.Printf("Error sending welcome message: %v", err)
-			return
-		}
-	} else {
-		msg := tgbotapi.NewMessage(chatID, "Iltimos, kanallarga azo bo'ling.")
+	// Agar foydalanuvchi barcha kanallarga azo bo'lmagan bo'lsa, kanallarga azo bo‘lishni talab qilamiz
+	if !isUserSubscribedToChannels(chatID, channels, botInstance) {
+		message := tgbotapi.NewMessage(chatID, "⚠️ Iltimos, quyidagi kanallarga azo bo'ling:")
 		inlineKeyboard := createSubscriptionKeyboard(channels)
-		msg.ReplyMarkup = inlineKeyboard
-		botInstance.Send(msg)
+		message.ReplyMarkup = inlineKeyboard
+		botInstance.Send(message)
+		return
+	}
+
+	// Agar foydalanuvchi barcha kanallarga azo bo‘lgan bo‘lsa, unga Web App havolasini beramiz
+	webAppURL := fmt.Sprintf("https://your-web-app.com?user_id=%d", userID)
+	webAppButton := tgbotapi.NewInlineKeyboardMarkup(
+		[]tgbotapi.InlineKeyboardButton{
+			tgbotapi.NewInlineKeyboardButtonURL("📋 Ma'lumotlarni to‘ldirish", webAppURL),
+		},
+	)
+
+	welcomeMessage := fmt.Sprintf("👋 Assalomu alaykum [%s](tg://user?id=%d), botimizga xush kelibsiz!\n\nEndi ma’lumotlaringizni to‘ldirish uchun quyidagi tugmani bosing.", firstName, userID)
+
+	// Yangi `message` yaratamiz, lekin `:=` ishlatmaymiz
+	message := tgbotapi.NewMessage(chatID, welcomeMessage)
+	message.ParseMode = "Markdown"
+	message.ReplyMarkup = webAppButton
+
+	_, err = botInstance.Send(message)
+	if err != nil {
+		log.Printf("Error sending Web App link: %v", err)
 	}
 }
 

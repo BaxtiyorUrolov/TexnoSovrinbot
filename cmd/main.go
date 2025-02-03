@@ -4,11 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"github.com/gin-gonic/gin"
+	files "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"texnosovrinbot/api"
+	_ "texnosovrinbot/docs"
 	"texnosovrinbot/handle"
 	"time"
 
@@ -43,6 +47,11 @@ func main() {
 
 	// HTTP server sozlamalari
 	router := gin.Default()
+
+	// 🔹 Swagger UI'ni qo‘shish
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(files.Handler))
+	router.POST("/update_user", api.UpdateUser(db))
+
 	server := &http.Server{
 		Addr:    ":8090",
 		Handler: router,
@@ -56,36 +65,8 @@ func main() {
 		}
 	}()
 
-	// Tickerni boshqarish
-	ticker := time.NewTicker(24 * time.Hour)
-	defer ticker.Stop()
-
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				log.Println("Stopping ticker...")
-				return
-			case <-ticker.C:
-				handle.HandleBackup(db, botInstance)
-			}
-		}
-	}()
-
 	<-ctx.Done()
 	log.Println("Shutdown signal received")
-
-	// HTTP serverni to'xtatish
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeout)
-	defer shutdownCancel()
-
-	if err := server.Shutdown(shutdownCtx); err != nil {
-		log.Printf("HTTP server shutdown error: %v", err)
-	} else {
-		log.Println("HTTP server stopped successfully")
-	}
-
-	log.Println("Program exited cleanly")
 }
 
 // Start Telegram bot and listen for updates

@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"texnosovrinbot/models"
 	"time"
@@ -125,7 +126,7 @@ func GetLastMonthUsers(db *sql.DB) (int, error) {
 
 func GetAllUsers(db *sql.DB) ([]models.User, error) {
 	log.Println("GetAllUsers funksiyasi ishga tushdi") // Log qo'shish
-	query := `SELECT user_id, status FROM users`
+	query := `SELECT user_id FROM users`
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
@@ -135,7 +136,7 @@ func GetAllUsers(db *sql.DB) ([]models.User, error) {
 	var users []models.User
 	for rows.Next() {
 		var user models.User
-		if err := rows.Scan(&user.ID, &user.Status); err != nil {
+		if err := rows.Scan(&user.ID); err != nil {
 			return nil, err
 		}
 		users = append(users, user)
@@ -164,4 +165,26 @@ func GetPrice(db *sql.DB) int {
 	}
 
 	return price
+}
+
+func UpdateUserInfo(db *sql.DB, telegramID int64, name, viloyat, shahar string) error {
+	query := `UPDATE users SET name = $1, viloyat = $2, shahar = $3, telefon = $4 WHERE id = $5`
+	result, err := db.Exec(query, name, viloyat, shahar, telegramID)
+	if err != nil {
+		log.Printf("Error updating user info: %v", err)
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected() // ✅ Nechta qator o‘zgarganini tekshirish
+	if err != nil {
+		log.Printf("Error getting affected rows: %v", err)
+		return err
+	}
+
+	if rowsAffected == 0 { // ✅ Agar hech qanday qator o‘zgarmagan bo‘lsa, foydalanuvchi yo‘q
+		log.Printf("User with id %d not found", telegramID)
+		return errors.New("user not found") // ❌ Xato qaytarish
+	}
+
+	return nil
 }

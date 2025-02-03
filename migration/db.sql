@@ -1,8 +1,10 @@
 -- Create users table
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT UNIQUE NOT NULL,
-    lang TEXT,
-    status INT DEFAULT 1,
+    ism VARCHAR(50),
+    viloyat VARCHAR(30),
+    shahar VARCHAR(30),
+    telefon VARCHAR(14) UNIQUE,
     created_at TIMESTAMP DEFAULT NOW()
 );
 

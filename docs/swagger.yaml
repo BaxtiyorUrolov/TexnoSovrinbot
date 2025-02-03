@@ -1,0 +1,57 @@
+definitions:
+  api.UserUpdateRequest:
+    properties:
+      name:
+        type: string
+      shahar:
+        type: string
+      telegram_id:
+        type: integer
+      viloyat:
+        type: string
+    required:
+    - name
+    - shahar
+    - telegram_id
+    - viloyat
+    type: object
+info:
+  contact: {}
+paths:
+  /update_user:
+    post:
+      consumes:
+      - application/json
+      description: Foydalanuvchi ma’lumotlarini yangilash
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/api.UserUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'message: User updated successfully'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'error: Invalid input'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'error: Database error'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update user info
+      tags:
+      - users
+swagger: "2.0"
