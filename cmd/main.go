@@ -15,9 +15,7 @@ import (
 	_ "texnosovrinbot/docs"
 	"texnosovrinbot/handle"
 	"time"
-
 	"texnosovrinbot/storage"
-
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
@@ -42,31 +40,50 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	// Telegram bot gorutina
+	// Telegram botni ishga tushirish
 	go startTelegramBot(ctx, db, botInstance)
 
 	// HTTP server sozlamalari
 	router := gin.Default()
 
-	// 🔹 Swagger UI'ni qo‘shish
+	// 🔹 CORS middleware qo'shish
+	router.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+		c.Next()
+	})
+
+	// 🔹 Swagger UI
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(files.Handler))
 	router.POST("/update_user", api.UpdateUser(db))
 
 	server := &http.Server{
-		Addr:    ":8090",
+		Addr:    "0.0.0.0:8090",
 		Handler: router,
 	}
 
-	// HTTP serverni boshqarish gorutina
+	// HTTP serverni ishga tushirish
 	go func() {
-		log.Println("Starting HTTP server on :8090")
+		log.Println("🚀 HTTP server started on 0.0.0.0:8090")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("HTTP server error: %v", err)
 		}
 	}()
 
 	<-ctx.Done()
-	log.Println("Shutdown signal received")
+	log.Println("🛑 Shutdown signal received, closing server...")
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer shutdownCancel()
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+	log.Println("✅ Server gracefully stopped")
 }
 
 // Start Telegram bot and listen for updates
