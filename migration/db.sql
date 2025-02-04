@@ -1,7 +1,7 @@
 -- Create users table
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT UNIQUE NOT NULL,
-    ism VARCHAR(50),
+    name VARCHAR(50),
     viloyat VARCHAR(30),
     shahar VARCHAR(30),
     telefon VARCHAR(14) UNIQUE,
