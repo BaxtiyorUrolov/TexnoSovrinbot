@@ -4,7 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"github.com/gin-gonic/gin"
-	files "github.com/swaggo/files"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"log"
 	"net/http"
@@ -14,9 +15,8 @@ import (
 	"texnosovrinbot/api"
 	_ "texnosovrinbot/docs"
 	"texnosovrinbot/handle"
-	"time"
 	"texnosovrinbot/storage"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"time"
 )
 
 const (
@@ -59,7 +59,7 @@ func main() {
 	})
 
 	// 🔹 Swagger UI
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(files.Handler))
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.POST("/update_user", api.UpdateUser(db))
 
 	server := &http.Server{
