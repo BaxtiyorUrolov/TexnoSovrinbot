@@ -77,6 +77,7 @@ const docTemplate = `{
             "required": [
                 "name",
                 "shahar",
+                "telefon",
                 "telegram_id",
                 "viloyat"
             ],
@@ -85,6 +86,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "shahar": {
+                    "type": "string"
+                },
+                "telefon": {
                     "type": "string"
                 },
                 "telegram_id": {

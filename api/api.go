@@ -25,7 +25,7 @@ type UserUpdateRequest struct {
 // @Success 200 {object} map[string]string "message: User updated successfully"
 // @Failure 400 {object} map[string]string "error: Invalid input"
 // @Failure 500 {object} map[string]string "error: Database error"
-// @Router /update-user [post]
+// @Router /update_user [post]
 func UpdateUser(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req UserUpdateRequest
@@ -35,7 +35,7 @@ func UpdateUser(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		err := storage.UpdateUserInfo(db, req.TelegramID, req.Name, req.Viloyat, req.Shahar)
+		err := storage.UpdateUserInfo(db, req.TelegramID, req.Name, req.Viloyat, req.Shahar, req.Telefon)
 		if err != nil {
 			if err.Error() == "user not found" { // 🔹 `RowsAffected() == 0` bo‘lsa
 				c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})

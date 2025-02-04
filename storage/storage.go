@@ -167,9 +167,9 @@ func GetPrice(db *sql.DB) int {
 	return price
 }
 
-func UpdateUserInfo(db *sql.DB, telegramID int64, name, viloyat, shahar string) error {
+func UpdateUserInfo(db *sql.DB, telegramID int64, name, viloyat, shahar string, telefon string) error {
 	query := `UPDATE users SET name = $1, viloyat = $2, shahar = $3, telefon = $4 WHERE id = $5`
-	result, err := db.Exec(query, name, viloyat, shahar, telegramID)
+	result, err := db.Exec(query, name, viloyat, shahar, telefon, telegramID)
 	if err != nil {
 		log.Printf("Error updating user info: %v", err)
 		return err

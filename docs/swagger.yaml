@@ -5,6 +5,8 @@ definitions:
         type: string
       shahar:
         type: string
+      telefon:
+        type: string
       telegram_id:
         type: integer
       viloyat:
@@ -12,6 +14,7 @@ definitions:
     required:
     - name
     - shahar
+    - telefon
     - telegram_id
     - viloyat
     type: object
