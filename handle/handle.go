@@ -76,46 +76,28 @@ func handleStartCommand(msg *tgbotapi.Message, db *sql.DB, botInstance *tgbotapi
 		return
 	}
 
-	// Barcha kerakli kanallarni olish
 	channels, err := storage.GetChannelsFromDatabase(db)
 	if err != nil {
 		log.Printf("Error getting channels from database: %v", err)
 		return
 	}
 
-	// Agar foydalanuvchi barcha kanallarga azo bo'lmagan bo'lsa, kanallarga azo bo‘lishni talab qilamiz
 	if !isUserSubscribedToChannels(chatID, channels, botInstance) {
-		message := tgbotapi.NewMessage(chatID, "⚠️ Iltimos, quyidagi kanallarga azo bo'ling:")
+		message := tgbotapi.NewMessage(chatID, "⚠️ Iltimos, quyidagi kanallarga a'zo bo'ling:")
 		inlineKeyboard := createSubscriptionKeyboard(channels)
 		message.ReplyMarkup = inlineKeyboard
 		botInstance.Send(message)
 		return
 	}
 
-	// Agar foydalanuvchi barcha kanallarga azo bo‘lgan bo‘lsa, unga Web App havolasini beramiz
-	webAppURL := fmt.Sprintf("https://post-sooty.vercel.app/?user_id=%d", userID)
-	webAppButton := tgbotapi.NewInlineKeyboardMarkup(
-		[]tgbotapi.InlineKeyboardButton{
-			tgbotapi.NewInlineKeyboardButtonURL("📋 Ma'lumotlarni to‘ldirish", webAppURL),
-		},
-	)
-
-	welcomeMessage := fmt.Sprintf("👋 Assalomu alaykum [%s](tg://user?id=%d), botimizga xush kelibsiz!\n\nEndi ma’lumotlaringizni to‘ldirish uchun quyidagi tugmani bosing.", firstName, userID)
-
-	// Yangi `message` yaratamiz, lekin `:=` ishlatmaymiz
-	message := tgbotapi.NewMessage(chatID, welcomeMessage)
-	message.ParseMode = "Markdown"
-	message.ReplyMarkup = webAppButton
-
-	_, err = botInstance.Send(message)
-	if err != nil {
-		log.Printf("Error sending Web App link: %v", err)
-	}
+	sendWebAppLink(chatID, userID, firstName, botInstance)
 }
 
 func handleCallbackQuery(callbackQuery *tgbotapi.CallbackQuery, db *sql.DB, botInstance *tgbotapi.BotAPI) {
 	chatID := callbackQuery.Message.Chat.ID
 	messageID := callbackQuery.Message.MessageID
+	userID := callbackQuery.From.ID
+	firstName := callbackQuery.From.FirstName
 
 	channels, err := storage.GetChannelsFromDatabase(db)
 	if err != nil {
@@ -127,18 +109,9 @@ func handleCallbackQuery(callbackQuery *tgbotapi.CallbackQuery, db *sql.DB, botI
 		if isUserSubscribedToChannels(chatID, channels, botInstance) {
 			deleteMsg := tgbotapi.NewDeleteMessage(chatID, messageID)
 			botInstance.Send(deleteMsg)
-
-			welcomeMessage := fmt.Sprintf("👋 Assalomu alaykum [%s](tg://user?id=%d) botimizga xush kelibsiz.", callbackQuery.From.FirstName, callbackQuery.From.ID)
-
-			msg := tgbotapi.NewMessage(chatID, welcomeMessage)
-			msg.ParseMode = "Markdown"
-			_, err = botInstance.Send(msg)
-			if err != nil {
-				log.Printf("Error sending photo: %v", err)
-				return
-			}
+			sendWebAppLink(chatID, userID, firstName, botInstance)
 		} else {
-			msg := tgbotapi.NewMessage(chatID, "Iltimos, kanallarga azo bo'ling.")
+			msg := tgbotapi.NewMessage(chatID, "❌ Iltimos, barcha kanallarga a'zo bo'ling!")
 			inlineKeyboard := createSubscriptionKeyboard(channels)
 			msg.ReplyMarkup = inlineKeyboard
 			botInstance.Send(msg)
@@ -197,6 +170,26 @@ func handleDefaultMessage(msg *tgbotapi.Message, db *sql.DB, botInstance *tgbota
 		if storage.IsAdmin(int(chatID), db) {
 			go HandleBackup(db, botInstance)
 		}
+	}
+}
+
+func sendWebAppLink(chatID int64, userID int, firstName string, botInstance *tgbotapi.BotAPI) {
+	webAppURL := fmt.Sprintf("https://post-sooty.vercel.app/?user_id=%d", userID)
+	webAppButton := tgbotapi.NewInlineKeyboardMarkup(
+		[]tgbotapi.InlineKeyboardButton{
+			tgbotapi.NewInlineKeyboardButtonURL("📋 Ma'lumotlarni to‘ldirish", webAppURL),
+		},
+	)
+
+	welcomeMessage := fmt.Sprintf("👋 Assalomu alaykum [%s](tg://user?id=%d)! \nKanallarga a’zo bo‘lgansiz ✅\nEndi ma’lumotlaringizni to‘ldirish uchun quyidagi tugmani bosing.", firstName, userID)
+
+	msg := tgbotapi.NewMessage(chatID, welcomeMessage)
+	msg.ParseMode = "Markdown"
+	msg.ReplyMarkup = webAppButton
+
+	_, err := botInstance.Send(msg)
+	if err != nil {
+		log.Printf("Error sending Web App link: %v", err)
 	}
 }
 
