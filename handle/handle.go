@@ -93,7 +93,7 @@ func handleStartCommand(msg *tgbotapi.Message, db *sql.DB, botInstance *tgbotapi
 	}
 
 	// Agar foydalanuvchi barcha kanallarga azo bo‘lgan bo‘lsa, unga Web App havolasini beramiz
-	webAppURL := fmt.Sprintf("https://it-tanlov.uz?user_id=%d", userID)
+	webAppURL := fmt.Sprintf("https://post-sooty.vercel.app/?user_id=%d", userID)
 	webAppButton := tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
 			tgbotapi.NewInlineKeyboardButtonURL("📋 Ma'lumotlarni to‘ldirish", webAppURL),
