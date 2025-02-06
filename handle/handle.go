@@ -181,7 +181,7 @@ func sendWebAppLink(chatID int64, userID int, firstName string, botInstance *tgb
 		},
 	)
 
-	welcomeMessage := fmt.Sprintf("👋 Assalomu alaykum [%s](tg://user?id=%d)! \nKanallarga a’zo bo‘lgansiz ✅\nEndi ma’lumotlaringizni to‘ldirish uchun quyidagi tugmani bosing.", firstName, userID)
+	welcomeMessage := fmt.Sprintf("👋 Assalomu alaykum [%s](tg://user?id=%d)! \nKanallarga a’zo bo‘lgansiz ✅\nSovrinli oʻyinda ishtirok etish uchun iltimos quyidagi havolani bosgan holda maʼlumotlaringizni toʻldiring.👇", firstName, userID)
 
 	msg := tgbotapi.NewMessage(chatID, welcomeMessage)
 	msg.ParseMode = "Markdown"
@@ -271,7 +271,6 @@ func HandleBackup(db *sql.DB, botInstance *tgbotapi.BotAPI) {
 		return
 	}
 
-	// Faylni barcha adminlarga yuborish
 	for _, chatID := range adminIDs {
 		SendBackupToAdmin(chatID, backupFile, botInstance)
 	}
@@ -279,7 +278,6 @@ func HandleBackup(db *sql.DB, botInstance *tgbotapi.BotAPI) {
 
 // SendBackupToAdmin sends a backup file to a specific admin
 func SendBackupToAdmin(chatID int64, filePath string, botInstance *tgbotapi.BotAPI) {
-	// Faylni ochish
 	file, err := os.Open(filePath)
 	if err != nil {
 		log.Printf("Backup faylni ochib bo'lmadi: %v", err)
@@ -287,7 +285,6 @@ func SendBackupToAdmin(chatID int64, filePath string, botInstance *tgbotapi.BotA
 	}
 	defer file.Close()
 
-	// Telegram orqali fayl yuborish
 	msg := tgbotapi.NewDocumentUpload(chatID, tgbotapi.FileReader{
 		Name:   filePath,
 		Reader: file,
