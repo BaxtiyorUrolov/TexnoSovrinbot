@@ -181,7 +181,7 @@ func sendWebAppLink(chatID int64, userID int, firstName string, botInstance *tgb
 		},
 	)
 
-	welcomeMessage := fmt.Sprintf("👋 Assalomu alaykum [%s](tg://user?id=%d)! \nKanallarga a’zo bo‘lgansiz ✅\nSovrinli oʻyinda ishtirok etish uchun iltimos quyidagi havolani bosgan holda maʼlumotlaringizni toʻldiring.👇", firstName, userID)
+	welcomeMessage := fmt.Sprintf("👋 Assalomu alaykum [%s](tg://user?id=%d)! \n\nSovrinli oʻyinda ishtirok etish uchun iltimos quyidagi havolani bosgan holda maʼlumotlaringizni toʻldiring.👇", firstName, userID)
 
 	msg := tgbotapi.NewMessage(chatID, welcomeMessage)
 	msg.ParseMode = "Markdown"
